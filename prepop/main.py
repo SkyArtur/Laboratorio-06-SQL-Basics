@@ -1,7 +1,7 @@
 import os
-import json
 import dotenv
 import mysql.connector
+from books import books
 
 dotenv.load_dotenv()
 
@@ -12,6 +12,11 @@ database = {
     'password': os.getenv('PASSWORD'),
     'database': os.getenv('DATABASE'),
 }
+
+query_insert = """
+INSERT INTO books (title, author, published, quantity, price)
+    VALUES (%s, %s, %s, %s, price_calculate(%s, 15));
+"""
 
 
 class Connector:
@@ -37,11 +42,12 @@ class Connector:
             except mysql.connector.Error as err:
                 print(err)
 
-def read_file(filename):
-    with open(filename, 'r', encoding='utf8') as file:
-        return json.load(file)
-
 
 def prepopulate():
-    # db = Connector()
-    print(read_file('prepopulate.json'))
+    db = Connector()
+    for book in [tuple(item.values()) for item in books]:
+        db.execute(query_insert, book, commit=True)
+
+
+if __name__ == '__main__':
+    prepopulate()

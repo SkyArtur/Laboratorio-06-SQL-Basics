@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS books_all (
 
 ALTER TABLE books_all RENAME TO books;
 ALTER TABLE books ADD author_book VARCHAR(15) DEFAULT '' AFTER title;
+ALTER TABLE books ADD published CHAR(4) AFTER  author;
 ALTER TABLE books CHANGE author_book author VARCHAR(15);
 ALTER TABLE books MODIFY author VARCHAR(150);
 
