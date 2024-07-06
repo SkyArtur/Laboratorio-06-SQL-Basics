@@ -120,7 +120,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+prepop/.env
 .venv
 env/
 venv/
@@ -160,3 +160,5 @@ cython_debug/
 #.idea/
 
 .idea
+
+prepop/
