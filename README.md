@@ -186,7 +186,7 @@ ALTER TABLE books ADD COLUMN id_author INT AFTER published;
 ```
 - Adicionar a chave estrangeira;
 ```mysql
-ALTER TABLE books ADD FOREIGN KEY (id_author) REFERENCES authors (id);
+ALTER TABLE books ADD FOREIGN KEY (id_author) REFERENCES authors (id) ON DELETE CASCADE ON UPDATE CASCADE;
 ```
 - Atualizar o campo **id_author** da tabela *books*;
 ```mysql
@@ -229,8 +229,8 @@ E agora, vamos realizar uma consulta completa, entre as tabelas *books*, *author
 ```shell
 mysql> SELECT b.title, b.published, a.name, s.quantity, s.price
     ->     FROM books b
-    ->     JOIN authors a on b.id_author = a.id
-    ->     JOIN stocks s on s.id_book = b.id;
+    ->     JOIN authors a ON b.id_author = a.id
+    ->     JOIN stocks s ON s.id_book = b.id;
 +---------------------+-----------+------------------+----------+-------+
 | title               | published | name             | quantity | price |
 +---------------------+-----------+------------------+----------+-------+
@@ -239,7 +239,8 @@ mysql> SELECT b.title, b.published, a.name, s.quantity, s.price
 +---------------------+-----------+------------------+----------+-------+
 2 rows in set (0.00 sec)
 ```
-### Código SQL
+Com a normalização da tabela *books* e a criação das tabelas *authors* e *stocks*, podemos seguir em frente e criar as 
+tabelas restantes do nosso banco de dados, *sales* e *book_sales*.
 
 ```mysql
 CREATE TABLE IF NOT EXISTS sales(
@@ -282,6 +283,13 @@ Este relacionamento de um para um garante que cada entrada de estoque correspond
 primária id da tabela books. Com ON DELETE CASCADE, se um livro for removido, o registro de estoque correspondente 
 será excluído automaticamente.
 
+#### Tabela sales
+**Relacionamento**: A tabela sales representa vendas individuais e se conecta a books por meio da tabela intermediária books_sales.
+
+**Implementação**: Cada venda tem um identificador (id), uma data (date), uma quantidade total de itens vendidos 
+(quantity) e um valor total (value). O valor desta tabela fica associado aos livros por meio da tabela books_sales, 
+permitindo que várias vendas possam incluir o mesmo livro e que cada venda possa envolver diferentes livros.
+
 #### Tabela books_sales e a conexão entre books e sales
 **Relacionamento**: Muitos para muitos (N : N)
 
@@ -292,13 +300,6 @@ múltiplos livros. Portanto, foi criada a tabela books_sales para representar es
 (que referencia sales(id)). Isso cria a estrutura necessária para uma relação de muitos para muitos. Note que não há
 ON DELETE CASCADE nas chaves estrangeiras de books_sales, então a remoção de um livro ou venda não afeta diretamente 
 essa tabela.
-
-#### Tabela sales
-**Relacionamento**: A tabela sales representa vendas individuais e se conecta a books por meio da tabela intermediária books_sales.
-
-**Implementação**: Cada venda tem um identificador (id), uma data (date), uma quantidade total de itens vendidos 
-(quantity) e um valor total (value). O valor desta tabela fica associado aos livros por meio da tabela books_sales, 
-permitindo que várias vendas possam incluir o mesmo livro e que cada venda possa envolver diferentes livros.
 
 ***Resumo dos Relacionamentos***
 
