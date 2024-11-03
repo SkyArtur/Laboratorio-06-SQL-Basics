@@ -39,11 +39,11 @@ $$ delimiter ;
 ```
 - **ALTER**
 ```mysql
-ALTER TABLE books ADD author VARCHAR(150) DEFAULT '' AFTER title;
+ALTER TABLE books_all ADD author VARCHAR(150) DEFAULT '' AFTER title;
 ```
 - **DROP**
 ```mysql
-DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS books_all;
 ```
 ## DCL - Data Control Language
 Responsável por controlar autorizações sobre os dados em um SGBD.
@@ -54,23 +54,23 @@ GRANT ALL PRIVILEGES ON DATABASE bookstore TO admin_1;
 ```
 - **REVOKE**
 ```mysql
-REVOKE CREATE ON TABLE books FROM admin_1;
+REVOKE CREATE ON TABLE books_all FROM admin_1;
 ```
 ## DML - Data Manipulation Query
 Responsável por realizar inserções, alterações e exclusões no banco de dados.
 ### Exemplos de utilização:
 - **INSERT**
 ```mysql
-INSERT INTO books (title, author, quantity, price)
+INSERT INTO books_all (title, author, quantity, price)
     VALUES ('The Last Kingdom', 'Bernard CornWall', 25, price_calculate(34.5, 0.14));
 ```
 - **UPDATE**
 ```mysql
-UPDATE books SET author='Bernard Cornwell' WHERE id = 1;
+UPDATE books_all SET author='Bernard Cornwell' WHERE id = 1;
 ```
 - **DELETE**
 ```mysql
-DELETE FROM books WHERE id=3;
+DELETE FROM books_all WHERE id=3;
 ```
 ***Importante***: A cláusula *WHERE* é indispensável para garantir a segurança dos dados e filtrar as operações DMLs.
 Alguns SGBDs possuem uma programação auxiliar para garantir que estes comandos não sejam realizados sem a presença dela.
@@ -79,21 +79,21 @@ Responsável pela realização de consultas no banco de dados.
 ### Exemplos de utilização:
 - **SELECT**
 ```mysql
-SELECT * FROM books;
+SELECT * FROM books_all;
 ```
 ## DTL - Data Transaction Language
 Responsável por controlar as transações dentro do banco de dados.
 - **BEGIN-COMMIT**
 ```mysql
 BEGIN WORK;
-    INSERT INTO books (title, author, quantity, price) 
+    INSERT INTO books_all (title, author, quantity, price) 
         VALUES ('Farmer Giles of Ham', 'J. R. R. Tolkien', 35, price_calculate(45.65, 0.25));
 COMMIT ;
 ```
 - **BEGIN-ROLLBACK**
 ```mysql
 BEGIN WORK ;
-    INSERT INTO books (title, author, quantity, price) 
+    INSERT INTO books_all (title, author, quantity, price) 
         VALUES ('Book test 1', 'Author Teste', 35, price_calculate(45.65, 0.25)),
                 ('Book test 2', 'Author Teste', 26, price_calculate(45.32, 0.12)),
                 ('Book test 3', 'Author Teste', 30, price_calculate(52, 0.25)),
@@ -113,30 +113,135 @@ Para tanto, modelaremos *bookstore* de modo a existirem 5 entidades que se relac
 
 ![bookstore](https://github.com/user-attachments/assets/40710603-023b-4b04-ad93-b5788b6be66f)
 
-### Código SQL
+- ### 1º Passo
 
+Já possuímos uma tabela chamada *books_all* que possuem dois registros:
+```shell
+mysql> SELECT * FROM books_all;
++----+---------------------+------------------+----------+-------+
+| id | title               | author           | quantity | price |
++----+---------------------+------------------+----------+-------+
+|  1 | The Last Kingdom    | Bernard Cornwell |       25 | 39.33 |
+|  2 | Farmer Giles of Ham | J. R. R. Tolkien |       35 | 57.06 |
++----+---------------------+------------------+----------+-------+
+2 rows in set (0.00 sec)
+```
+Vamos começar renomeando nossa tabela para *books*:
+```mysql
+ALTER TABLE books_all RENAME books;
+```
+Agora vamos verificar as alterações que precisamos fazer em *books*:
+````shell
+mysql> DESCRIBE books;
++----------+--------------+------+-----+---------+----------------+
+| Field    | Type         | Null | Key | Default | Extra          |
++----------+--------------+------+-----+---------+----------------+
+| id       | int          | NO   | PRI | NULL    | auto_increment |
+| title    | varchar(150) | YES  |     | NULL    |                |
+| author   | varchar(150) | YES  |     |         |                |
+| quantity | int          | YES  |     | NULL    |                |
+| price    | decimal(6,2) | YES  |     | NULL    |                |
++----------+--------------+------+-----+---------+----------------+
+5 rows in set (0.01 sec)
+````
+- Adicionar um campo para data de publicação;
+- Isolar a coluna author em uma tabela diferente e estabelecer uma relação de 1 : N entre autores e livros;
+- Adicionar uma chave estrangeira para autor;
+- Remover as colunas quantidade e preço que estarão associadas à entidade *stocks*.
+
+Primeiramente criaremos a tabela *authors*, com a qual *books* irá se relacionar diretamente 
 ```mysql
 CREATE TABLE IF NOT EXISTS authors(
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(150) NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS books(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(150) NOT NULL ,
-    published CHAR(4) NOT NULL ,
-    id_author INT NOT NULL,
-    FOREIGN KEY (id_author)
-        REFERENCES authors(id) ON DELETE CASCADE
-);
-
+```
+Em seguida, criaremos a tabela *stocks*. Esta tabela irá possuir uma relação de 1 : 1 com a tabela *books*, 
+de modo que será estabelecido uma relação forte entre estas duas tabelas, principalmente pelo fato da chave primária de
+ *stocks* ser uma chave estrangeira que referência a tabela *books*.
+```mysql
 CREATE TABLE IF NOT EXISTS stocks(
     id_book INT PRIMARY KEY NOT NULL,
     FOREIGN KEY (id_book) REFERENCES books(id) ON DELETE CASCADE,
     quantity INT NOT NULL DEFAULT 0,
     price DECIMAL(6, 2) NOT NULL DEFAULT 0
 );
+```
+Vamos, agora, inserir os registros em *authors* e *stocks*:
+```mysql
+INSERT INTO authors (name) VALUES ('Bernard Cornwell'), ('J. R. R. Tolkien');
+INSERT INTO stocks (id_book, quantity, price) values (1, 25, 39.33), (2, 35, 57.06);
+```
+Podemos então realizar as alterações em *books*:
+- Excluir os campos desnecessários;
+```mysql
+ALTER TABLE books DROP COLUMN author;
+ALTER TABLE books DROP COLUMN quantity;
+ALTER TABLE books DROP COLUMN price;
+```
+- Adicionar os campos id_author e published;
+```mysql
+ALTER TABLE books ADD COLUMN published CHAR(4) after title;
+ALTER TABLE books ADD COLUMN id_author INT AFTER published;
+```
+- Adicionar a chave estrangeira;
+```mysql
+ALTER TABLE books ADD FOREIGN KEY (id_author) REFERENCES authors (id);
+```
+- Atualizar o campo **id_author** da tabela *books*;
+```mysql
+UPDATE books
+    SET id_author = (SELECT id FROM authors WHERE name LIKE 'Bernard Cornwell'), published = '2004'
+    WHERE id = 1;
+UPDATE books
+    SET id_author = (SELECT id FROM authors WHERE name LIKE 'J. R. R. Tolkien'), published = '1937'
+    WHERE id = 2;
+```
+- Modificar o campo **id_author**, para não permitir que o campo admita um valor nulo;
+```mysql
+ALTER TABLE books MODIFY id_author INT NOT NULL;
+```
+Agora nossa tabela *books* está configurada desta maneira;
+```shell
+mysql> DESCRIBE books;
++-----------+--------------+------+-----+---------+----------------+
+| Field     | Type         | Null | Key | Default | Extra          |
++-----------+--------------+------+-----+---------+----------------+
+| id        | int          | NO   | PRI | NULL    | auto_increment |
+| title     | varchar(150) | YES  |     | NULL    |                |
+| published | char(4)      | YES  |     | NULL    |                |
+| id_author | int          | NO   | MUL | NULL    |                |
++-----------+--------------+------+-----+---------+----------------+
+4 rows in set (0.00 sec)
+```
+Faremos uma consulta simples na tabela *books*:
+```shell
+mysql> SELECT * FROM books;
++----+---------------------+-----------+-----------+
+| id | title               | published | id_author |
++----+---------------------+-----------+-----------+
+|  1 | The Last Kingdom    | 2004      |         1 |
+|  2 | Farmer Giles of Ham | 1937      |         2 |
++----+---------------------+-----------+-----------+
+2 rows in set (0.00 sec)
+```
+E agora, vamos realizar uma consulta completa, entre as tabelas *books*, *authors* e *stocks*:
+```shell
+mysql> SELECT b.title, b.published, a.name, s.quantity, s.price
+    ->     FROM books b
+    ->     JOIN authors a on b.id_author = a.id
+    ->     JOIN stocks s on s.id_book = b.id;
++---------------------+-----------+------------------+----------+-------+
+| title               | published | name             | quantity | price |
++---------------------+-----------+------------------+----------+-------+
+| The Last Kingdom    | 2004      | Bernard Cornwell |       25 | 39.33 |
+| Farmer Giles of Ham | 1937      | J. R. R. Tolkien |       35 | 57.06 |
++---------------------+-----------+------------------+----------+-------+
+2 rows in set (0.00 sec)
+```
+### Código SQL
 
+```mysql
 CREATE TABLE IF NOT EXISTS sales(
     id INT PRIMARY KEY AUTO_INCREMENT,
     date DATE NOT NULL DEFAULT (CURRENT_DATE),
