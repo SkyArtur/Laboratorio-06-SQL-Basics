@@ -13,4 +13,4 @@ $$ delimiter ;
 
 DROP FUNCTION IF EXISTS price_calculate;
 
-SELECT price_calculate(100, 0.1);
+SELECT price_calculate(100, 10);
