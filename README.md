@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS books_sales (
 Para descrever os relacionamentos entre as entidades, vamos analisar cada tabela e suas chaves estrangeiras, que indicam 
 as conexões e restrições de integridade referencial entre elas:
 
-### Tabela authors e books
+#### Tabela authors e books
 **Relacionamento**: Um para muitos (1 : N)
 
 **Explicação**: Cada autor pode escrever vários livros, mas cada livro só pode ter um autor associado.
@@ -167,7 +167,7 @@ as conexões e restrições de integridade referencial entre elas:
 O uso de ON DELETE CASCADE indica que, se um autor for removido, todos os livros associados a ele também serão excluídos 
 automaticamente.
 
-### Tabela books e stocks
+#### Tabela books e stocks
 **Relacionamento**: Um para um (1:1)
 
 **Explicação**: Cada livro tem um registro de estoque correspondente, que indica a quantidade disponível e o preço. 
@@ -177,7 +177,7 @@ Este relacionamento de um para um garante que cada entrada de estoque correspond
 primária id da tabela books. Com ON DELETE CASCADE, se um livro for removido, o registro de estoque correspondente 
 será excluído automaticamente.
 
-### Tabela books_sales e a conexão entre books e sales
+#### Tabela books_sales e a conexão entre books e sales
 **Relacionamento**: Muitos para muitos (N : N)
 
 **Explicação**: Este relacionamento indica que cada livro pode estar presente em várias vendas e cada venda pode incluir 
@@ -188,7 +188,7 @@ múltiplos livros. Portanto, foi criada a tabela books_sales para representar es
 ON DELETE CASCADE nas chaves estrangeiras de books_sales, então a remoção de um livro ou venda não afeta diretamente 
 essa tabela.
 
-### Tabela sales
+#### Tabela sales
 **Relacionamento**: A tabela sales representa vendas individuais e se conecta a books por meio da tabela intermediária books_sales.
 
 **Implementação**: Cada venda tem um identificador (id), uma data (date), uma quantidade total de itens vendidos 
