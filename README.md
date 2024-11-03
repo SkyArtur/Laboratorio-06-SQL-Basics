@@ -114,6 +114,7 @@ Para tanto, modelaremos *bookstore* de modo a existirem 5 entidades que se relac
 ![bookstore](https://github.com/user-attachments/assets/40710603-023b-4b04-ad93-b5788b6be66f)
 
 ### Código SQL
+
 ```mysql
 CREATE TABLE IF NOT EXISTS authors(
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -212,3 +213,18 @@ preserva a integridade sem excluir dados relacionados.
 entre livros e vendas, evitando redundâncias e mantendo a estrutura do banco de dados limpa e eficiente.
 Essas definições ajudam a garantir a integridade e facilitam a manutenção do banco de dados.
 
+<hr/>
+
+Laboratórios:
+
+[Laboratório 01 - Trabalhando com PostgreSQL e PL/pgSQL.](https://github.com/SkyArtur/Laboratorio-01-PLpgSQL)
+
+[Laboratório 02 - Conectando com o banco de dados.](https://github.com/SkyArtur/Laboratorio-02-Python)
+
+[Laboratório 03 - Conectando com o banco de dados com Node JS.](https://github.com/SkyArtur/Laboratorio-03-Node)
+
+[Laboratório 04 - Criando uma API com express JS.](https://github.com/SkyArtur/Laboratorio-04-Node-Express)
+
+[Laboratório 05 - Gerenciando uma aplicação com Kubernets.](https://github.com/SkyArtur/Laboratorio-05-Kubernetes)
+
+<hr/>
