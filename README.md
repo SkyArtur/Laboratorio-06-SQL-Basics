@@ -109,7 +109,50 @@ não devem exercer dependência entre si.
 
 Para tanto, modelaremos *bookstore* de modo a existirem 5 entidades que se relacionam entre si como a seguir:
 
+### Modelo Entodade Relacionamento
+
 ![bookstore](https://github.com/user-attachments/assets/40710603-023b-4b04-ad93-b5788b6be66f)
+
+### Código SQL
+```mysql
+CREATE TABLE IF NOT EXISTS authors(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(150) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS books(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(150) NOT NULL ,
+    published CHAR(4) NOT NULL ,
+    id_author INT NOT NULL,
+    FOREIGN KEY (id_author)
+        REFERENCES authors(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS stocks(
+    id_book INT PRIMARY KEY NOT NULL,
+    FOREIGN KEY (id_book) REFERENCES books(id) ON DELETE CASCADE,
+    quantity INT NOT NULL DEFAULT 0,
+    price DECIMAL(6, 2) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS sales(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    date DATE NOT NULL DEFAULT (CURRENT_DATE),
+    quantity INT NOT NULL ,
+    value DECIMAL(9, 2) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS books_sales (
+    id_book INT NOT NULL,
+    id_sale INT NOT NULL,
+    FOREIGN KEY (id_book)
+        REFERENCES books(id) ON DELETE NO ACTION,
+    FOREIGN KEY (id_sale)
+        REFERENCES sales(id) ON DELETE NO ACTION
+);
+```
+
 
 Para descrever os relacionamentos entre as entidades, vamos analisar cada tabela e suas chaves estrangeiras, que indicam 
 as conexões e restrições de integridade referencial entre elas:
@@ -169,43 +212,3 @@ preserva a integridade sem excluir dados relacionados.
 entre livros e vendas, evitando redundâncias e mantendo a estrutura do banco de dados limpa e eficiente.
 Essas definições ajudam a garantir a integridade e facilitam a manutenção do banco de dados.
 
-### Código SQL
-```mysql
-CREATE TABLE IF NOT EXISTS authors(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(150) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS books(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(150) NOT NULL ,
-    published CHAR(4) NOT NULL ,
-    id_author INT NOT NULL,
-    FOREIGN KEY (id_author)
-        REFERENCES authors(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS stocks(
-    id_book INT PRIMARY KEY NOT NULL,
-    FOREIGN KEY (id_book) REFERENCES books(id) ON DELETE CASCADE,
-    quantity INT NOT NULL DEFAULT 0,
-    price DECIMAL(6, 2) NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS sales(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    date DATE NOT NULL DEFAULT (CURRENT_DATE),
-    quantity INT NOT NULL ,
-    value DECIMAL(9, 2) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS books_sales (
-    id_book INT NOT NULL,
-    id_sale INT NOT NULL,
-    FOREIGN KEY (id_book)
-        REFERENCES books(id) ON DELETE NO ACTION,
-    FOREIGN KEY (id_sale)
-        REFERENCES sales(id) ON DELETE NO ACTION
-);
-
-```
