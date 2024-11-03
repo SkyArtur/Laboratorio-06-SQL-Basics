@@ -109,4 +109,5 @@ não devem exercer dependência entre si.
 
 Para tanto, modelaremos *bookstore* de modo a existirem 5 entidades que se relacionam entre si como a seguir:
 
+![bookstore](https://github.com/user-attachments/assets/40710603-023b-4b04-ad93-b5788b6be66f)
 
