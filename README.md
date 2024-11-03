@@ -111,3 +111,101 @@ Para tanto, modelaremos *bookstore* de modo a existirem 5 entidades que se relac
 
 ![bookstore](https://github.com/user-attachments/assets/40710603-023b-4b04-ad93-b5788b6be66f)
 
+Para descrever os relacionamentos entre as entidades, vamos analisar cada tabela e suas chaves estrangeiras, que indicam 
+as conexões e restrições de integridade referencial entre elas:
+
+### Tabela authors e books
+**Relacionamento**: Um para muitos (1 : N)
+
+**Explicação**: Cada autor pode escrever vários livros, mas cada livro só pode ter um autor associado.
+
+**Implementação**: A chave estrangeira id_author na tabela books referencia a chave primária id da tabela authors. 
+O uso de ON DELETE CASCADE indica que, se um autor for removido, todos os livros associados a ele também serão excluídos 
+automaticamente.
+
+### Tabela books e stocks
+**Relacionamento**: Um para um (1:1)
+
+**Explicação**: Cada livro tem um registro de estoque correspondente, que indica a quantidade disponível e o preço. 
+Este relacionamento de um para um garante que cada entrada de estoque corresponda exclusivamente a um único livro.
+
+**Implementação**: A chave primária id_book na tabela stocks também é uma chave estrangeira que referencia a chave 
+primária id da tabela books. Com ON DELETE CASCADE, se um livro for removido, o registro de estoque correspondente 
+será excluído automaticamente.
+
+### Tabela books_sales e a conexão entre books e sales
+**Relacionamento**: Muitos para muitos (N : N)
+
+**Explicação**: Este relacionamento indica que cada livro pode estar presente em várias vendas e cada venda pode incluir 
+múltiplos livros. Portanto, foi criada a tabela books_sales para representar essa relação.
+
+**Implementação**: A tabela books_sales possui duas chaves estrangeiras: id_book (que referencia books(id)) e id_sale 
+(que referencia sales(id)). Isso cria a estrutura necessária para uma relação de muitos para muitos. Note que não há
+ON DELETE CASCADE nas chaves estrangeiras de books_sales, então a remoção de um livro ou venda não afeta diretamente 
+essa tabela.
+
+### Tabela sales
+**Relacionamento**: A tabela sales representa vendas individuais e se conecta a books por meio da tabela intermediária books_sales.
+
+**Implementação**: Cada venda tem um identificador (id), uma data (date), uma quantidade total de itens vendidos 
+(quantity) e um valor total (value). O valor desta tabela fica associado aos livros por meio da tabela books_sales, 
+permitindo que várias vendas possam incluir o mesmo livro e que cada venda possa envolver diferentes livros.
+
+***Resumo dos Relacionamentos***
+
+- *authors → books*: Um autor pode ter muitos livros (1 : N).
+
+- *books → stocks*: Cada livro tem um estoque exclusivo (1:1).
+
+- *books ↔ sales (via books_sales)*: Relacionamento muitos para muitos (N : N), pois cada livro pode aparecer em várias 
+vendas e cada venda pode incluir vários livros.
+
+***Observações***
+
+- **Constraints de exclusão**: As cláusulas ON DELETE CASCADE garantem que a exclusão de um autor ou livro propague as 
+exclusões automaticamente nas tabelas dependentes (books e stocks), enquanto ON DELETE NO ACTION em books_sales 
+preserva a integridade sem excluir dados relacionados.
+- **Tabela de associação**: A tabela books_sales é crucial para manter o relacionamento N : N
+entre livros e vendas, evitando redundâncias e mantendo a estrutura do banco de dados limpa e eficiente.
+Essas definições ajudam a garantir a integridade e facilitam a manutenção do banco de dados.
+
+### Código SQL
+```mysql
+CREATE TABLE IF NOT EXISTS authors(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(150) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS books(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(150) NOT NULL ,
+    published CHAR(4) NOT NULL ,
+    id_author INT NOT NULL,
+    FOREIGN KEY (id_author)
+        REFERENCES authors(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS stocks(
+    id_book INT PRIMARY KEY NOT NULL,
+    FOREIGN KEY (id_book) REFERENCES books(id) ON DELETE CASCADE,
+    quantity INT NOT NULL DEFAULT 0,
+    price DECIMAL(6, 2) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS sales(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    date DATE NOT NULL DEFAULT (CURRENT_DATE),
+    quantity INT NOT NULL ,
+    value DECIMAL(9, 2) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS books_sales (
+    id_book INT NOT NULL,
+    id_sale INT NOT NULL,
+    FOREIGN KEY (id_book)
+        REFERENCES books(id) ON DELETE NO ACTION,
+    FOREIGN KEY (id_sale)
+        REFERENCES sales(id) ON DELETE NO ACTION
+);
+
+```
